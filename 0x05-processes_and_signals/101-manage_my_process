@@ -1,25 +1,34 @@
 #!/usr/bin/env bash
-# File to control the daemon manage_my_process
+#Bash script that creates a subprocess
+. /lib/lsb/init-functions
 
-case $1 in
+PIDFILE=/var/run/my_process.pid
+
+start() {
+    ./manage_my_process &
+    echo "$!" > "$PIDFILE"
+}
+
+stop() {
+    sudo kill -15 "$(cat "$PIDFILE")" && rm -f "$PIDFILE"
+}
+
+case "$1" in 
     start)
-		./manage_my_process &
-    	pgrep -f manage_my_process > /var/run/my_process.pid
-        echo "manage_my_process started"
-	;;
+       start
+       echo "manage_my_process started"
+       ;;
     stop)
-	 	pkill -f manage_my_process -SIGKILL
-	    rm /var/run/my_process.pid
-	    echo "manage_my_process stopped"
-	;;
+       stop
+       echo "manage_my_process stopped"
+       ;;
     restart)
-		pkill -f manage_my_process -SIGKILL
-	    rm /var/run/my_process.pid
-	    ./manage_my_process &
-	    pgrep -f manage_my_process > /var/run/my_process.pid
-	    echo "manage_my_process restarted"
-	;;
-	*)
-		echo "Usage: manage_my_process {start|stop|restart}"
-	;;
-	esac
+       stop
+       start
+       echo "manage_my_process restarted"
+       ;;
+    *)
+       echo "Usage: manage_my_process {start|stop|restart}"
+esac
+
+exit 0
